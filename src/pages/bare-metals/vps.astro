@@ -1,0 +1,244 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Spacer from "../../components/Spacer.astro";
+
+type Vps = {
+  name: string;
+  region: string;
+  datacenter: string;
+  status: "Running" | "Stopped" | "Deploying" | "Error" | "Pending";
+};
+
+const vpsList: Vps[] = [
+  { name: "onprem-web-01", region: "dc-eu-west", datacenter: "rack-12-a", status: "Running" },
+  { name: "onprem-app-01", region: "dc-eu-west", datacenter: "rack-12-b", status: "Running" },
+  { name: "onprem-db-01", region: "dc-eu-central", datacenter: "row-3-a", status: "Deploying" },
+  { name: "onprem-cache-01", region: "dc-eu-west", datacenter: "rack-08-a", status: "Running" },
+  { name: "onprem-queue-01", region: "dc-eu-south", datacenter: "row-5-b", status: "Pending" },
+  { name: "onprem-worker-01", region: "dc-eu-south", datacenter: "row-5-a", status: "Running" },
+  { name: "onprem-worker-02", region: "dc-eu-south", datacenter: "row-5-a", status: "Running" },
+  { name: "onprem-ml-01", region: "dc-eu-central", datacenter: "row-9-c", status: "Stopped" },
+  { name: "onprem-nas-01", region: "dc-eu-west", datacenter: "rack-02-c", status: "Running" },
+  { name: "onprem-backup-01", region: "dc-eu-central", datacenter: "row-1-a", status: "Error" },
+];
+
+const uniq = (arr: string[]) => Array.from(new Set(arr)).sort();
+const regionOptions = uniq(vpsList.map((s) => s.region));
+const dcOptions = uniq(vpsList.map((s) => s.datacenter));
+const statusOptions = uniq(vpsList.map((s) => s.status));
+
+const badgeCls = (s: string) => {
+  switch (s) {
+    case "Running":
+      return "badge badge-success w-28 px-0 text-center justify-center";
+    case "Deploying":
+      return "badge badge-info w-28 px-0 text-center justify-center";
+    case "Pending":
+      return "badge badge-warning w-28 px-0 text-center justify-center";
+    case "Stopped":
+      return "badge w-28 px-0 text-center justify-center";
+    case "Error":
+      return "badge badge-error w-28 px-0 text-center justify-center";
+    default:
+      return "badge w-28 px-0 text-center justify-center";
+  }
+};
+---
+<BaseLayout title="Virtual Private Servers" subtitle="Overview of your VPS">
+  <Spacer size={24} />
+
+  <div class="app-card">
+    <div class="app-card-body">
+      <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+          <thead>
+            <tr>
+              <th class="text-xs">
+                <div class="flex items-center gap-1">Server
+                  <button id="sortName" class="btn btn-ghost btn-xs" title="Sort by name">⇅</button>
+                </div>
+              </th>
+              <th class="text-xs text-center">
+                <div class="flex items-center justify-center gap-1">Location
+                  <button id="sortRegion" class="btn btn-ghost btn-xs" title="Sort by location">⇅</button>
+                </div>
+              </th>
+              <th class="text-xs text-center">
+                <div class="flex items-center justify-center gap-1">Datacenter
+                  <button id="sortDC" class="btn btn-ghost btn-xs" title="Sort by datacenter">⇅</button>
+                </div>
+              </th>
+              <th class="text-xs">
+                <div class="flex items-center gap-1">Status
+                  <button id="sortStatusCol" class="btn btn-ghost btn-xs" title="Sort by status">⇅</button>
+                </div>
+              </th>
+              <th class="text-xs text-right">Actions</th>
+            </tr>
+            <tr>
+              <th></th>
+              <th class="text-center">
+                <div class="dropdown mx-auto">
+                  <label tabindex="0" class="btn btn-sm">Filter</label>
+                  <div tabindex="0" class="dropdown-content z-10 w-56 rounded-lg border border-base-200 bg-base-100 p-3 shadow">
+                    <div class="max-h-56 space-y-2 overflow-auto pr-1">
+                      {regionOptions.map((r) => (
+                        <label class="flex items-center gap-2 text-sm">
+                          <input type="checkbox" class="checkbox checkbox-sm" name="filterRegion" value={r} />
+                          <span>{r}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <div class="mt-3 flex gap-2">
+                      <button id="resetRegion" class="btn btn-sm btn-outline flex-1">Reset</button>
+                      <button id="applyRegion" class="btn btn-sm flex-1">Apply</button>
+                    </div>
+                  </div>
+                </div>
+              </th>
+              <th class="text-center">
+                <div class="dropdown mx-auto">
+                  <label tabindex="0" class="btn btn-sm">Filter</label>
+                  <div tabindex="0" class="dropdown-content z-10 w-56 rounded-lg border border-base-200 bg-base-100 p-3 shadow">
+                    <div class="max-h-56 space-y-2 overflow-auto pr-1">
+                      {dcOptions.map((d) => (
+                        <label class="flex items-center gap-2 text-sm">
+                          <input type="checkbox" class="checkbox checkbox-sm" name="filterDC" value={d} />
+                          <span>{d}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <div class="mt-3 flex gap-2">
+                      <button id="resetDC" class="btn btn-sm btn-outline flex-1">Reset</button>
+                      <button id="applyDC" class="btn btn-sm flex-1">Apply</button>
+                    </div>
+                  </div>
+                </div>
+              </th>
+              <th class="text-center">
+                <div class="dropdown mx-auto">
+                  <label tabindex="0" class="btn btn-sm">Filter</label>
+                  <div tabindex="0" class="dropdown-content z-10 w-56 rounded-lg border border-base-200 bg-base-100 p-3 shadow">
+                    <div class="max-h-56 space-y-2 overflow-auto pr-1">
+                      {statusOptions.map((s) => (
+                        <label class="flex items-center gap-2 text-sm">
+                          <input type="checkbox" class="checkbox checkbox-sm" name="filterStatus" value={s} />
+                          <span>{s}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <div class="mt-3 flex gap-2">
+                      <button id="resetStatus" class="btn btn-sm btn-outline flex-1">Reset</button>
+                      <button id="applyStatus" class="btn btn-sm flex-1">Apply</button>
+                    </div>
+                  </div>
+                </div>
+              </th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="vpsBody">
+            {vpsList.map((s) => (
+              <tr data-status={s.status} data-region={s.region} data-dc={s.datacenter}>
+                <td class="text-sm">
+                  <div class="font-medium">{s.name}</div>
+                </td>
+                <td class="whitespace-nowrap text-center text-sm">{s.region}</td>
+                <td class="whitespace-nowrap text-center text-sm">{s.datacenter}</td>
+                <td class="text-sm"><span class={`${badgeCls(s.status)} badge-field`}>{s.status}</span></td>
+                <td class="text-right"><a href="/bare-metals/vps/vps-details" class="btn">Manage</a></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    const body = document.getElementById('vpsBody');
+    const sortNameBtn = document.getElementById('sortName');
+    const sortRegionBtn = document.getElementById('sortRegion');
+    const sortDCBtn = document.getElementById('sortDC');
+    const sortStatusBtn = document.getElementById('sortStatusCol');
+    const applyRegion = document.getElementById('applyRegion');
+    const applyDC = document.getElementById('applyDC');
+    const applyStatus = document.getElementById('applyStatus');
+    const resetRegion = document.getElementById('resetRegion');
+    const resetDC = document.getElementById('resetDC');
+    const resetStatus = document.getElementById('resetStatus');
+
+    let nameAsc = true, regionAsc = true, dcAsc = true, statusAsc = true;
+    const statusOrder = { 'Running': 1, 'Deploying': 2, 'Pending': 3, 'Stopped': 4, 'Error': 5 };
+
+    function sortRows(compare) {
+      if (!body) return;
+      const rows = Array.from(body.querySelectorAll('tr'));
+      rows.sort(compare);
+      rows.forEach(r => body.appendChild(r));
+    }
+
+    sortNameBtn?.addEventListener('click', () => {
+      sortRows((a, b) => {
+        const sa = (a.children[0].textContent || '').toLowerCase();
+        const sb = (b.children[0].textContent || '').toLowerCase();
+        if (sa < sb) return nameAsc ? -1 : 1;
+        if (sa > sb) return nameAsc ? 1 : -1;
+        return 0;
+      });
+      nameAsc = !nameAsc;
+    });
+    sortRegionBtn?.addEventListener('click', () => {
+      sortRows((a, b) => {
+        const ra = (a.getAttribute('data-region') || '').toLowerCase();
+        const rb = (b.getAttribute('data-region') || '').toLowerCase();
+        if (ra < rb) return regionAsc ? -1 : 1;
+        if (ra > rb) return regionAsc ? 1 : -1;
+        return 0;
+      });
+      regionAsc = !regionAsc;
+    });
+    sortDCBtn?.addEventListener('click', () => {
+      sortRows((a, b) => {
+        const da = (a.getAttribute('data-dc') || '').toLowerCase();
+        const db = (b.getAttribute('data-dc') || '').toLowerCase();
+        if (da < db) return dcAsc ? -1 : 1;
+        if (da > db) return dcAsc ? 1 : -1;
+        return 0;
+      });
+      dcAsc = !dcAsc;
+    });
+    sortStatusBtn?.addEventListener('click', () => {
+      sortRows((a, b) => {
+        const sa = a.getAttribute('data-status') || '';
+        const sb = b.getAttribute('data-status') || '';
+        const va = statusOrder[sa] || 99;
+        const vb = statusOrder[sb] || 99;
+        return (statusAsc ? va - vb : vb - va);
+      });
+      statusAsc = !statusAsc;
+    });
+
+    function getChecked(name) {
+      return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map((el) => el.value);
+    }
+    function applyFilters() {
+      if (!body) return;
+      const regions = getChecked('filterRegion');
+      const dcs = getChecked('filterDC');
+      const statuses = getChecked('filterStatus');
+      body.querySelectorAll('tr').forEach((row) => {
+        const matchR = regions.length === 0 || regions.includes(row.getAttribute('data-region') || '');
+        const matchD = dcs.length === 0 || dcs.includes(row.getAttribute('data-dc') || '');
+        const matchS = statuses.length === 0 || statuses.includes(row.getAttribute('data-status') || '');
+        row.style.display = (matchR && matchD && matchS) ? '' : 'none';
+      });
+    }
+    document.getElementById('applyRegion')?.addEventListener('click', applyFilters);
+    document.getElementById('applyDC')?.addEventListener('click', applyFilters);
+    document.getElementById('applyStatus')?.addEventListener('click', applyFilters);
+    document.getElementById('resetRegion')?.addEventListener('click', ()=>{ document.querySelectorAll('input[name="filterRegion"]').forEach(el=> el.checked=false); applyFilters(); });
+    document.getElementById('resetDC')?.addEventListener('click', ()=>{ document.querySelectorAll('input[name="filterDC"]').forEach(el=> el.checked=false); applyFilters(); });
+    document.getElementById('resetStatus')?.addEventListener('click', ()=>{ document.querySelectorAll('input[name="filterStatus"]').forEach(el=> el.checked=false); applyFilters(); });
+  </script>
+</BaseLayout>

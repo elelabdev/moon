@@ -1,0 +1,530 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Spacer from "../../components/Spacer.astro";
+
+type Service = {
+  type: string;
+  name: string;
+  region: string; // e.g., eu-west-1
+  datacenter: string; // e.g., eu-west-1a
+  provider: "aws" | "azure" | "gcp" | "alibaba" | "tencent" | "oracle";
+  status: "Running" | "Stopped" | "Deploying" | "Error" | "Pending";
+};
+type Order = {
+  id: string;
+  title: string;
+  meta: string;
+  status: "Processing" | "Completed" | "Failed" | "Pending";
+};
+
+const services: Service[] = [
+  { type: "VM", name: "production-web-01", region: "eu-west-1", datacenter: "eu-west-1a", provider: "aws", status: "Running" },
+  { type: "VM", name: "production-api-01", region: "eu-west-1", datacenter: "eu-west-1b", provider: "aws", status: "Running" },
+  { type: "VM", name: "staging-web-01", region: "eu-central-1", datacenter: "eu-central-1a", provider: "gcp", status: "Stopped" },
+  { type: "DB", name: "postgres-primary", region: "eu-central-1", datacenter: "eu-central-1b", provider: "azure", status: "Running" },
+  { type: "DB", name: "redis-cache", region: "eu-west-3", datacenter: "eu-west-3a", provider: "oracle", status: "Running" },
+  { type: "Kubernetes", name: "k8s-prod-cluster", region: "eu-west-2", datacenter: "eu-west-2a", provider: "aws", status: "Running" },
+  { type: "Kubernetes", name: "k8s-dev-cluster", region: "eu-south-1", datacenter: "eu-south-1a", provider: "alibaba", status: "Deploying" },
+  { type: "Object Storage", name: "media-bucket", region: "eu-central-1", datacenter: "eu-central-1c", provider: "gcp", status: "Running" },
+  { type: "Object Storage", name: "backup-archive", region: "eu-west-2", datacenter: "eu-west-2b", provider: "azure", status: "Running" },
+  { type: "Network", name: "edge-firewall-eu", region: "eu-west-1", datacenter: "eu-west-1c", provider: "aws", status: "Running" },
+  { type: "Network", name: "vpn-tunnel-hq", region: "eu-north-1", datacenter: "eu-north-1a", provider: "tencent", status: "Running" },
+  { type: "Monitoring", name: "uptime-checks", region: "eu-west-3", datacenter: "eu-west-3b", provider: "oracle", status: "Running" },
+  { type: "CDN", name: "global-cdn", region: "eu-south-1", datacenter: "eu-south-1b", provider: "alibaba", status: "Running" },
+  { type: "VM", name: "ml-worker-01", region: "eu-south-1", datacenter: "eu-south-1c", provider: "oracle", status: "Pending" },
+  { type: "VM", name: "ml-worker-02", region: "eu-south-1", datacenter: "eu-south-1a", provider: "oracle", status: "Error" }
+];
+
+const orders: Order[] = [
+  { id: "#10293", title: "3× VM Standard", meta: "Placed: Aug 02", status: "Processing" },
+  { id: "#10244", title: "Managed PostgreSQL", meta: "Placed: Jul 28", status: "Completed" },
+  { id: "#10198", title: "Kubernetes Cluster", meta: "Placed: Jul 19", status: "Pending" },
+  { id: "#10177", title: "Object Storage 2TB", meta: "Placed: Jul 15", status: "Completed" },
+  { id: "#10112", title: "VM GPU Large", meta: "Placed: Jul 01", status: "Failed" }
+];
+
+const uniq = (arr: string[]) => Array.from(new Set(arr)).sort();
+const statusOrderMap: Record<string, number> = { Running: 1, Deploying: 2, Pending: 3, Stopped: 4, Error: 5 };
+const regionOptions = uniq(services.map((s) => s.region));
+const dcOptions = uniq(services.map((s) => s.datacenter));
+const providerOptions = uniq(services.map((s) => s.provider));
+const statusOptions = Array.from(new Set(services.map((s) => s.status))).sort(
+  (a, b) => (statusOrderMap[a] || 99) - (statusOrderMap[b] || 99)
+);
+
+const badgeCls = (s: string) => {
+  switch (s) {
+    case "Running":
+    case "Completed":
+    case "Operational":
+    case "Solved":
+      return "badge badge-success w-28 px-0 text-center justify-center";
+    case "Processing":
+    case "Pending":
+    case "Degraded":
+    case "Open":
+      return "badge badge-warning w-28 px-0 text-center justify-center";
+    case "Stopped":
+      return "badge w-28 px-0 text-center justify-center";
+    case "Deploying":
+      return "badge badge-info w-28 px-0 text-center justify-center";
+    case "Error":
+    case "Failed":
+      return "badge badge-error w-28 px-0 text-center justify-center";
+    default:
+      return "badge w-28 px-0 text-center justify-center";
+}
+};
+---
+<BaseLayout title="Hello, Name Surname" subtitle="Overview of your account">
+  <Spacer size={48} />
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+    <div class="app-card h-full">
+      <div class="app-card-body flex h-full flex-col">
+        <h2 class="app-card-title">System Status</h2>
+        <ul class="space-y-2 text-sm">
+          <li class="flex items-center justify-between">
+            <span>On-premise DCs</span>
+            <span class={badgeCls("Operational")}>Operational</span>
+          </li>
+          <li class="flex items-center justify-between">
+            <span>Public Cloud</span>
+            <span class={badgeCls("Operational")}>Operational</span>
+          </li>
+          <li class="flex items-center justify-between">
+            <span>APIs</span>
+            <span class={badgeCls("Degraded")}>Degraded</span>
+          </li>
+          <li class="flex items-center justify-between">
+            <span>Notifications</span>
+            <span class={badgeCls("Operational")}>Operational</span>
+          </li>
+        </ul>
+        <div class="card-actions mt-auto pt-2">
+          <a href="/support/system-status" class="btn btn-sm btn-outline w-full">View Status</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-card h-full">
+      <div class="app-card-body flex h-full flex-col">
+        <h2 class="app-card-title">My Tickets</h2>
+        <div class="space-y-3">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="truncate text-sm font-medium">Unable to access VM after update</div>
+              <div class="text-xs opacity-70">#38421 • Updated 2h ago</div>
+            </div>
+            <span class={badgeCls("Open")}>Open</span>
+          </div>
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="truncate text-sm font-medium">Billing discrepancy for July</div>
+              <div class="text-xs opacity-70">#38210 • Updated 1d ago</div>
+            </div>
+            <span class={badgeCls("Pending")}>Pending</span>
+          </div>
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="truncate text-sm font-medium">Add user to project Alpha</div>
+              <div class="text-xs opacity-70">#38192 • Updated 3d ago</div>
+            </div>
+            <span class={badgeCls("Solved")}>Solved</span>
+          </div>
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="truncate text-sm font-medium">Cannot reach object storage endpoint</div>
+              <div class="text-xs opacity-70">#37940 • Updated 5d ago</div>
+            </div>
+            <span class={badgeCls("Open")}>Open</span>
+          </div>
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="truncate text-sm font-medium">Request quota increase for GPUs</div>
+              <div class="text-xs opacity-70">#37888 • Updated 1w ago</div>
+            </div>
+            <span class={badgeCls("Pending")}>Pending</span>
+          </div>
+        </div>
+        <div class="card-actions mt-auto pt-2">
+          <a href="#" class="btn btn-sm btn-outline w-full">All Tickets</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-card h-full">
+      <div class="app-card-body flex h-full flex-col">
+        <h2 class="app-card-title">From the Blog</h2>
+        <div class="relative w-full rounded-lg px-8 md:px-10">
+          <div class="overflow-hidden rounded-lg relative min-h-[220px] md:min-h-[260px]">
+            <div class="blog-slide absolute inset-0 translate-x-0 rounded-lg bg-base-200 p-4 transition-transform duration-500">
+              <img src="/assets/blog/slide1.svg" alt="Introducing MOON API v2" class="mb-3 h-32 w-full rounded-md object-cover md:h-36" />
+              <div class="text-sm font-medium">Introducing MOON API v2</div>
+              <p class="mt-1 text-sm opacity-70">New endpoints and improved rate limits.</p>
+              <a href="#" class="link mt-2 inline-block text-sm">Read more</a>
+            </div>
+            <div class="blog-slide absolute inset-0 translate-x-full rounded-lg bg-base-200 p-4 transition-transform duration-500">
+              <img src="/assets/blog/slide2.svg" alt="Best practices for scaling VMs" class="mb-3 h-32 w-full rounded-md object-cover md:h-36" />
+              <div class="text-sm font-medium">Best practices for scaling VMs</div>
+              <p class="mt-1 text-sm opacity-70">Guidelines to optimize cost and performance.</p>
+              <a href="#" class="link mt-2 inline-block text-sm">Read more</a>
+            </div>
+            <div class="blog-slide absolute inset-0 translate-x-full rounded-lg bg-base-200 p-4 transition-transform duration-500">
+              <img src="/assets/blog/slide3.svg" alt="What’s new in August" class="mb-3 h-32 w-full rounded-md object-cover md:h-36" />
+              <div class="text-sm font-medium">What’s new in August</div>
+              <p class="mt-1 text-sm opacity-70">Changelog highlights and deprecations.</p>
+              <a href="#" class="link mt-2 inline-block text-sm">Read more</a>
+            </div>
+          </div>
+          <button id="blogPrev" class="btn btn-circle btn-ghost btn-sm absolute left-0 top-1/2 -translate-y-1/2">❮</button>
+          <button id="blogNext" class="btn btn-circle btn-ghost btn-sm absolute right-0 top-1/2 -translate-y-1/2">❯</button>
+        </div>
+        <div class="card-actions mt-auto pt-2">
+          <a href="#" class="btn btn-sm btn-outline w-full">View Blog</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <Spacer size={48} />
+  <div class="app-card">
+    <div class="app-card-body">
+      <h2 class="app-card-title mb-3">My services and order</h2>
+      <div class="tabs tabs-boxed w-full">
+      <button id="tab-services" class="tab tab-active flex-1">My services</button>
+      <button id="tab-orders" class="tab flex-1">My orders</button>
+      </div>
+      <div class="mt-4">
+      <div id="panel-services" class="space-y-3">
+        <div class="overflow-x-auto">
+          <table class="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th class="text-xs">
+                  <div class="flex items-center gap-1">Service
+                    <button id="sortService" class="btn btn-ghost btn-xs" title="Sort by service">⇅</button>
+                  </div>
+                </th>
+                <th class="text-xs text-center">
+                  <div class="flex items-center justify-center gap-1">Location
+                    <button id="sortRegion" class="btn btn-ghost btn-xs" title="Sort by location">⇅</button>
+                  </div>
+                </th>
+                <th class="text-xs text-center">
+                  <div class="flex items-center justify-center gap-1">Datacenter
+                    <button id="sortDC" class="btn btn-ghost btn-xs" title="Sort by datacenter">⇅</button>
+                  </div>
+                </th>
+                <th class="text-xs text-center">
+                  <div class="flex items-center justify-center gap-1">Provider
+                    <button id="sortProvider" class="btn btn-ghost btn-xs" title="Sort by provider">⇅</button>
+                  </div>
+                </th>
+                <th class="text-xs">
+                  <div class="flex items-center gap-1">Status
+                    <button id="sortStatusCol" class="btn btn-ghost btn-xs" title="Sort by status">⇅</button>
+                  </div>
+                </th>
+                <th class="text-xs text-right">Actions</th>
+              </tr>
+              <tr>
+                <th></th>
+                <th class="text-center">
+                  <div class="dropdown mx-auto">
+                    <label tabindex="0" class="btn btn-sm">Filter</label>
+                    <div tabindex="0" class="dropdown-content z-10 w-56 rounded-lg border border-base-200 bg-base-100 p-3 shadow">
+                      <div class="max-h-56 space-y-2 overflow-auto pr-1">
+                        {regionOptions.map((r) => (
+                          <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" class="checkbox checkbox-sm" name="filterRegion" value={r} />
+                            <span>{r}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <div class="mt-3 flex gap-2">
+                        <button id="resetRegion" class="btn btn-sm btn-outline flex-1">Reset</button>
+                        <button id="applyRegion" class="btn btn-sm flex-1">Apply</button>
+                      </div>
+                    </div>
+                  </div>
+                </th>
+                <th class="text-center">
+                  <div class="dropdown mx-auto">
+                    <label tabindex="0" class="btn btn-sm">Filter</label>
+                    <div tabindex="0" class="dropdown-content z-10 w-56 rounded-lg border border-base-200 bg-base-100 p-3 shadow">
+                      <div class="max-h-56 space-y-2 overflow-auto pr-1">
+                        {dcOptions.map((d) => (
+                          <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" class="checkbox checkbox-sm" name="filterDC" value={d} />
+                            <span>{d}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <div class="mt-3 flex gap-2">
+                        <button id="resetDC" class="btn btn-sm btn-outline flex-1">Reset</button>
+                        <button id="applyDC" class="btn btn-sm flex-1">Apply</button>
+                      </div>
+                    </div>
+                  </div>
+                </th>
+                <th class="text-center">
+                  <div class="dropdown mx-auto">
+                    <label tabindex="0" class="btn btn-sm">Filter</label>
+                    <div tabindex="0" class="dropdown-content z-10 w-56 rounded-lg border border-base-200 bg-base-100 p-3 shadow">
+                      <div class="max-h-56 space-y-2 overflow-auto pr-1">
+                        {providerOptions.map((p) => (
+                          <label class="flex items-center gap-2 text-sm capitalize">
+                            <input type="checkbox" class="checkbox checkbox-sm" name="filterProvider" value={p} />
+                            <span>{p}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <div class="mt-3 flex gap-2">
+                        <button id="resetProvider" class="btn btn-sm btn-outline flex-1">Reset</button>
+                        <button id="applyProvider" class="btn btn-sm flex-1">Apply</button>
+                      </div>
+                    </div>
+                  </div>
+                </th>
+                <th class="text-center">
+                  <div class="dropdown mx-auto">
+                    <label tabindex="0" class="btn btn-sm">Filter</label>
+                    <div tabindex="0" class="dropdown-content z-10 w-56 rounded-lg border border-base-200 bg-base-100 p-3 shadow">
+                      <div class="max-h-56 space-y-2 overflow-auto pr-1">
+                        {statusOptions.map((s) => (
+                          <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" class="checkbox checkbox-sm" name="filterStatus" value={s} />
+                            <span>{s}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <div class="mt-3 flex gap-2">
+                        <button id="resetStatus" class="btn btn-sm btn-outline flex-1">Reset</button>
+                        <button id="applyStatus" class="btn btn-sm flex-1">Apply</button>
+                      </div>
+                    </div>
+                  </div>
+                </th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="servicesBody">
+              {services.map((s) => (
+                <tr data-status={s.status} data-region={s.region} data-dc={s.datacenter} data-provider={s.provider}>
+                  <td>
+                    <div class="text-sm font-medium">{s.type} • {s.name}</div>
+                  </td>
+                  <td class="whitespace-nowrap text-sm text-center">{s.region}</td>
+                  <td class="whitespace-nowrap text-sm text-center">{s.datacenter}</td>
+                  <td class="text-sm text-center">
+                    <div class="flex items-center justify-center gap-2">
+                      <img data-provider={s.provider} alt={s.provider} class="provider-logo h-5 w-auto" />
+                      <span class="provider-name hidden capitalize opacity-80">{s.provider}</span>
+                    </div>
+                  </td>
+                  <td class="text-sm">
+                    <span class={`${badgeCls(s.status)} badge-field`}>{s.status}</span>
+                  </td>
+                  <td class="text-right">
+                    <a href="#" class="btn">Manage</a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div id="panel-orders" class="hidden space-y-3">
+        {orders.map((o) => (
+          <div class="app-card">
+            <div class="app-card-body py-4">
+              <div class="flex flex-wrap items-center justify-between gap-3 text-sm">
+                <div class="min-w-0">
+                  <div class="truncate font-medium">Order {o.id} • {o.title}</div>
+                  <div class="opacity-70">{o.meta}</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class={`${badgeCls(o.status)} badge-field`}>{o.status}</span>
+                  <a href="#" class="btn btn-outline">Details</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    const tServices = document.getElementById('tab-services');
+    const tOrders = document.getElementById('tab-orders');
+    const pServices = document.getElementById('panel-services');
+    const pOrders = document.getElementById('panel-orders');
+    function showPanel(which){
+      if (which === 'services') {
+        pServices?.classList.remove('hidden');
+        pOrders?.classList.add('hidden');
+        tServices?.classList.add('tab-active');
+        tOrders?.classList.remove('tab-active');
+      } else {
+        pOrders?.classList.remove('hidden');
+        pServices?.classList.add('hidden');
+        tOrders?.classList.add('tab-active');
+        tServices?.classList.remove('tab-active');
+      }
+    }
+    tServices?.addEventListener('click', ()=> showPanel('services'));
+    tOrders?.addEventListener('click', ()=> showPanel('orders'));
+
+    // Services table sorting & filtering
+    const body = document.getElementById('servicesBody');
+    const sortServiceBtn = document.getElementById('sortService');
+    const sortRegionBtn = document.getElementById('sortRegion');
+    const sortDCBtn = document.getElementById('sortDC');
+    const sortProviderBtn = document.getElementById('sortProvider');
+    const sortStatusBtn = document.getElementById('sortStatusCol');
+    const applyRegion = document.getElementById('applyRegion');
+    const applyDC = document.getElementById('applyDC');
+    const applyProvider = document.getElementById('applyProvider');
+    const applyStatus = document.getElementById('applyStatus');
+    const resetRegion = document.getElementById('resetRegion');
+    const resetDC = document.getElementById('resetDC');
+    const resetProvider = document.getElementById('resetProvider');
+    const resetStatus = document.getElementById('resetStatus');
+    let serviceAsc = true, regionAsc = true, dcAsc = true, providerAsc = true, statusAsc = true;
+
+    function sortRows(compare) {
+      if (!body) return;
+      const rows = Array.from(body.querySelectorAll('tr'));
+      rows.sort(compare);
+      rows.forEach(r => body.appendChild(r));
+    }
+    const statusOrder = { 'Running': 1, 'Deploying': 2, 'Pending': 3, 'Stopped': 4, 'Error': 5 };
+    sortStatusBtn?.addEventListener('click', () => {
+      sortRows((a, b) => {
+        const sa = a.getAttribute('data-status') || '';
+        const sb = b.getAttribute('data-status') || '';
+        const va = statusOrder[sa] || 99;
+        const vb = statusOrder[sb] || 99;
+        return (statusAsc ? va - vb : vb - va);
+      });
+      statusAsc = !statusAsc;
+    });
+    sortServiceBtn?.addEventListener('click', () => {
+      sortRows((a, b) => {
+        const sa = (a.children[0].textContent || '').toLowerCase();
+        const sb = (b.children[0].textContent || '').toLowerCase();
+        if (sa < sb) return serviceAsc ? -1 : 1;
+        if (sa > sb) return serviceAsc ? 1 : -1;
+        return 0;
+      });
+      serviceAsc = !serviceAsc;
+    });
+    sortRegionBtn?.addEventListener('click', () => {
+      sortRows((a, b) => {
+        const ra = (a.getAttribute('data-region') || '').toLowerCase();
+        const rb = (b.getAttribute('data-region') || '').toLowerCase();
+        if (ra < rb) return regionAsc ? -1 : 1;
+        if (ra > rb) return regionAsc ? 1 : -1;
+        return 0;
+      });
+      regionAsc = !regionAsc;
+    });
+    sortDCBtn?.addEventListener('click', () => {
+      sortRows((a, b) => {
+        const da = (a.getAttribute('data-dc') || '').toLowerCase();
+        const db = (b.getAttribute('data-dc') || '').toLowerCase();
+        if (da < db) return dcAsc ? -1 : 1;
+        if (da > db) return dcAsc ? 1 : -1;
+        return 0;
+      });
+      dcAsc = !dcAsc;
+    });
+    sortProviderBtn?.addEventListener('click', () => {
+      sortRows((a, b) => {
+        const pa = (a.getAttribute('data-provider') || '').toLowerCase();
+        const pb = (b.getAttribute('data-provider') || '').toLowerCase();
+        if (pa < pb) return providerAsc ? -1 : 1;
+        if (pa > pb) return providerAsc ? 1 : -1;
+        return 0;
+      });
+      providerAsc = !providerAsc;
+    });
+
+    function getChecked(name) {
+      return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map((el) => el.value);
+    }
+    function applyFilters() {
+      if (!body) return;
+      const regions = getChecked('filterRegion');
+      const dcs = getChecked('filterDC');
+      const providers = getChecked('filterProvider');
+      const statuses = getChecked('filterStatus');
+      body.querySelectorAll('tr').forEach((row) => {
+        const matchR = regions.length === 0 || regions.includes(row.getAttribute('data-region') || '');
+        const matchD = dcs.length === 0 || dcs.includes(row.getAttribute('data-dc') || '');
+        const matchP = providers.length === 0 || providers.includes(row.getAttribute('data-provider') || '');
+        const matchS = statuses.length === 0 || statuses.includes(row.getAttribute('data-status') || '');
+        row.style.display = (matchR && matchD && matchP && matchS) ? '' : 'none';
+      });
+    }
+    document.getElementById('applyRegion')?.addEventListener('click', applyFilters);
+    document.getElementById('applyDC')?.addEventListener('click', applyFilters);
+    document.getElementById('applyProvider')?.addEventListener('click', applyFilters);
+    document.getElementById('applyStatus')?.addEventListener('click', applyFilters);
+    resetRegion?.addEventListener('click', ()=>{ document.querySelectorAll('input[name="filterRegion"]').forEach(el=> el.checked=false); applyFilters(); });
+    resetDC?.addEventListener('click', ()=>{ document.querySelectorAll('input[name="filterDC"]').forEach(el=> el.checked=false); applyFilters(); });
+    resetProvider?.addEventListener('click', ()=>{ document.querySelectorAll('input[name="filterProvider"]').forEach(el=> el.checked=false); applyFilters(); });
+    resetStatus?.addEventListener('click', ()=>{ document.querySelectorAll('input[name="filterStatus"]').forEach(el=> el.checked=false); applyFilters(); });
+
+    // we draw the provider logos: switch to light variant in dark theme; fallback to text if missing
+    function setProviderIcon(img) {
+      const provider = img.getAttribute('data-provider');
+      if (!provider) return;
+      const theme = document.documentElement.getAttribute('data-theme') || 'light';
+      const variant = theme === 'dark' ? '-light' : '';
+      const span = img.nextElementSibling;
+      // Reset visibility before attempting to load
+      img.style.display = '';
+      if (span) span.classList.add('hidden');
+      img.onerror = () => { img.style.display = 'none'; if (span) span.classList.remove('hidden'); };
+      img.src = `/assets/providers/${provider}${variant}.svg`;
+    }
+    function updateProviderIcons(){
+      document.querySelectorAll('img.provider-logo').forEach((img)=> setProviderIcon(img));
+    }
+    // Initial set
+    updateProviderIcons();
+    // React to theme changes
+    const obs = new MutationObserver((muts)=>{
+      for (const m of muts) {
+        if (m.type === 'attributes' && m.attributeName === 'data-theme') {
+          updateProviderIcons();
+        }
+      }
+    });
+    obs.observe(document.documentElement, { attributes: true });
+
+    // Blog slider (one slide at a time with 4s auto-advance)
+    (function(){
+      const slides = Array.from(document.querySelectorAll('.blog-slide'));
+      if (!slides.length) return;
+      let idx = 0;
+      function position() {
+        slides.forEach((el, j) => {
+          const offset = (j - idx) * 100;
+          el.style.transform = `translateX(${offset}%)`;
+        });
+      }
+      function show(i){
+        idx = (i + slides.length) % slides.length;
+        position();
+      }
+      let timer = setInterval(()=> show(idx+1), 4000);
+      function resetTimer(){ clearInterval(timer); timer = setInterval(()=> show(idx+1), 4000); }
+      document.getElementById('blogPrev')?.addEventListener('click', ()=> { show(idx-1); resetTimer(); });
+      document.getElementById('blogNext')?.addEventListener('click', ()=> { show(idx+1); resetTimer(); });
+      position();
+    })();
+  </script>
+</BaseLayout>

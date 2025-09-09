@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Layout helpers for the sidebar collapse */
+:root {
+  --sidebar-w: 264px;
+  --sidebar-w-collapsed: 76px;
+}
+body.has-collapsed .sidebar { width: var(--sidebar-w-collapsed); }
+body.has-collapsed .main    { margin-left: var(--sidebar-w-collapsed); }
+body.has-collapsed .app-footer { left: var(--sidebar-w-collapsed); }
+body.has-collapsed .content-col { left: var(--sidebar-w-collapsed); }
+
+/* Light theme main area background */
+[data-theme="light"] .content-col { background-color: #f9f9f9; }
+[data-theme="dark"]  .content-col { background-color: #1a2027; }
+/* (Reverted) don't hide global scrollbars; use content-col scrolling */
+
+/* DaisyUI global rounding tokens */
+[data-theme] {
+  --rounded-box: 0.5rem;   /* card, modal, alert */
+  --rounded-btn: 0.5rem;   /* button, input, select, tab */
+  --rounded-badge: 0.5rem; /* badge, small indicators */
+}
+
+/* Safety net for non-Daisy elements */
+@layer base {
+  .card, .modal, .alert { border-radius: 0.5rem; }
+  .btn, .input, .select, .tab { border-radius: 0.5rem; }
+  .checkbox, .toggle, .badge { border-radius: 0.5rem; }
+}
+
+/* Global size scale overrides (pixels) */
+@layer components {
+  /* App card styles - unify look across all cards */
+  .app-card { @apply card border border-base-200 bg-base-100 rounded-lg shadow-sm; }
+  .app-card-body { @apply card-body p-4; }
+  .app-card-title { @apply card-title text-base; }
+  /* Fields (button, input, select, tab) -> base/md = 40px */
+  .btn, .input, .select, .tab { min-height: 40px; height: 40px; }
+  .btn-xs, .input-xs, .select-xs, .tab-xs { min-height: 24px; height: 24px; }
+  .btn-sm, .input-sm, .select-sm, .tab-sm { min-height: 32px; height: 32px; }
+  .btn-md, .input-md, .select-md, .tab-md { min-height: 40px; height: 40px; }
+  .btn-lg, .input-lg, .select-lg, .tab-lg { min-height: 48px; height: 48px; }
+  .btn-xl, .input-xl, .select-xl, .tab-xl { min-height: 56px; height: 56px; }
+  .btn, .tab { line-height: 1; }
+
+  /* Selectors (checkbox, toggle, badge) -> base/md = 27px */
+  .checkbox { width: 27px; height: 27px; }
+  .checkbox-xs { width: 18px; height: 18px; }
+  .checkbox-sm { width: 23px; height: 23px; }
+  .checkbox-md { width: 27px; height: 27px; }
+  .checkbox-lg { width: 32px; height: 32px; }
+  .checkbox-xl { width: 36px; height: 36px; }
+
+  .toggle { height: 27px; }
+  .toggle-xs { height: 18px; }
+  .toggle-sm { height: 23px; }
+  .toggle-md { height: 27px; }
+  .toggle-lg { height: 32px; }
+  .toggle-xl { height: 36px; }
+
+  .badge { min-height: 27px; height: 27px; line-height: 27px; }
+  .badge-xs { min-height: 18px; height: 18px; line-height: 18px; }
+  .badge-sm { min-height: 23px; height: 23px; line-height: 23px; }
+  .badge-md { min-height: 27px; height: 27px; line-height: 27px; }
+  .badge-lg { min-height: 32px; height: 32px; line-height: 32px; }
+  .badge-xl { min-height: 36px; height: 36px; line-height: 36px; }
+  /* Match field height (40px) for badges where needed */
+  .badge-field { min-height: 40px; height: 40px; line-height: 40px; }
+}
+
+/* Light/Dark logo toggles */
+.logo-light { display: inline; }
+.logo-dark { display: none; }
+[data-theme="dark"] .logo-light { display: none; }
+[data-theme="dark"] .logo-dark { display: inline; }

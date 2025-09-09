@@ -1,0 +1,22 @@
+{
+  "name": "self-service-portal",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "astro": "^4.8.6"
+  },
+  "devDependencies": {
+    "@astrojs/tailwind": "^5.1.0",
+    "autoprefixer": "^10.4.20",
+    "daisyui": "^5.1.7",
+    "postcss": "^8.4.41",
+    "tailwindcss": "^3.4.10"
+  }
+}

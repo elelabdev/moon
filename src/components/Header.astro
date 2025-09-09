@@ -1,0 +1,106 @@
+<header class="sticky top-0 z-40 border-b border-base-200 bg-base-100/90 backdrop-blur">
+  <div class="mx-auto flex h-14 max-w-screen-2xl items-center justify-between">
+    <div></div>
+    <div class="relative flex items-center gap-1 md:gap-2">
+      <button id="searchBtn" class="btn btn-ghost btn-sm" title="Search" aria-label="Search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 opacity-80"><path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 104.21 12.053l3.743 3.744a.75.75 0 101.061-1.061l-3.744-3.743A6.75 6.75 0 0010.5 3.75zm-5.25 6.75a5.25 5.25 0 1110.5 0 5.25 5.25 0 01-10.5 0z" clip-rule="evenodd"/></svg>
+      </button>
+
+      <div class="relative">
+        <button id="langBtn" class="btn btn-ghost btn-sm">EN</button>
+        <div id="langMenu" class="absolute right-0 top-9 z-50 hidden w-36 rounded-lg border border-base-200 bg-base-100 py-1 shadow-lg">
+          <button data-lang="EN" class="block w-full px-3 py-1.5 text-left text-sm hover:bg-base-200">English</button>
+          <button data-lang="IT" class="block w-full px-3 py-1.5 text-left text-sm hover:bg-base-200">Italiano</button>
+          <button data-lang="ES" class="block w-full px-3 py-1.5 text-left text-sm hover:bg-base-200">Español</button>
+        </div>
+      </div>
+
+      <div class="relative">
+        <button id="supportBtn" class="btn btn-ghost btn-sm">Support</button>
+        <div id="supportMenu" class="absolute right-0 top-9 z-50 hidden w-56 rounded-lg border border-base-200 bg-base-100 py-1 shadow-lg">
+          <a href="#" class="block px-3 py-2 text-sm hover:bg-base-200">Documentation</a>
+          <a href="#" class="block px-3 py-2 text-sm hover:bg-base-200">Knowledge Base</a>
+          <a href="#" class="block px-3 py-2 text-sm hover:bg-base-200">Support Center</a>
+          <a href="#" class="block px-3 py-2 text-sm hover:bg-base-200">Solution Topology</a>
+        </div>
+      </div>
+
+      <div class="relative flex items-center">
+        <button id="userMenuBtn" class="rounded-full focus:outline-none focus:ring-2 focus:ring-slate-300">
+          <img src="/assets/user/placeholder.svg" alt="avatar" class="h-8 w-8 rounded-full ring-2 ring-slate-100" />
+        </button>
+        <div id="userMenu" class="absolute right-0 top-10 z-50 hidden w-56 rounded-lg border border-base-200 bg-base-100 py-1 shadow-lg">
+        <div class="px-3 pb-2 pt-2">
+          <div class="text-sm font-medium">Signed in as</div>
+          <div class="truncate text-sm opacity-70">maia@elelab.dev</div>
+        </div>
+        <div class="px-3 py-2">
+          <div class="mb-1 text-xs uppercase tracking-wide opacity-60">Theme</div>
+          <div class="flex overflow-hidden rounded-lg border border-base-200">
+            <button id="themeLight" class="btn btn-xs flex-1 rounded-none">Light</button>
+            <button id="themeDark" class="btn btn-xs flex-1 rounded-none">Dark</button>
+          </div>
+        </div>
+        <a href="/public-profile" class="block px-3 py-2 text-sm hover:bg-base-200">Profile</a>
+        <a href="/account-management" class="block px-3 py-2 text-sm hover:bg-base-200">Settings</a>
+        <a href="/help" class="block px-3 py-2 text-sm hover:bg-base-200">Help</a>
+        <div class="my-1 border-t border-base-200"></div>
+        <a href="/login" class="block px-3 py-2 text-sm text-rose-600 hover:bg-rose-50">Logout</a>
+      </div>
+    </div>
+  </div>
+  <script is:inline>
+    const $ = (id) => document.getElementById(id);
+    const userBtn = $('userMenuBtn');
+    const userMenu = $('userMenu');
+    const langBtn = $('langBtn');
+    const langMenu = $('langMenu');
+    const supportBtn = $('supportBtn');
+    const supportMenu = $('supportMenu');
+    const themeLight = $('themeLight');
+    const themeDark = $('themeDark');
+
+    function toggle(el){ el?.classList.toggle('hidden'); }
+    function hide(el){ el?.classList.add('hidden'); }
+    function show(el){ el?.classList.remove('hidden'); }
+    function closeAll(){ hide(userMenu); hide(langMenu); hide(supportMenu); }
+
+    userBtn?.addEventListener('click', (e)=>{ e.stopPropagation(); closeAll(); toggle(userMenu); });
+    langBtn?.addEventListener('click', (e)=>{ e.stopPropagation(); closeAll(); toggle(langMenu); });
+    supportBtn?.addEventListener('click', (e)=>{ e.stopPropagation(); closeAll(); toggle(supportMenu); });
+
+    document.addEventListener('click', ()=> closeAll());
+    document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeAll(); });
+
+    // Language selection persistence
+    langMenu?.querySelectorAll('[data-lang]')?.forEach((btn)=>{
+      btn.addEventListener('click', ()=>{
+        const code = btn.getAttribute('data-lang');
+        if (code) { localStorage.setItem('lang', code); langBtn.textContent = code; }
+        hide(langMenu);
+      });
+    });
+    const savedLang = localStorage.getItem('lang');
+    if (savedLang) langBtn.textContent = savedLang;
+
+    // Theme handling
+    function applyTheme(t) {
+      const root = document.documentElement;
+      root.setAttribute('data-theme', t);
+      if (t === 'dark') root.classList.add('dark'); else root.classList.remove('dark');
+      localStorage.setItem('theme', t);
+      if (themeLight && themeDark) {
+        if (t === 'dark') { themeDark.classList.add('btn-active'); themeLight.classList.remove('btn-active'); }
+        else { themeLight.classList.add('btn-active'); themeDark.classList.remove('btn-active'); }
+      }
+    }
+    (function(){
+      const stored = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const t = stored || (prefersDark ? 'dark' : 'light');
+      applyTheme(t);
+    })();
+    themeLight?.addEventListener('click', ()=> applyTheme('light'));
+    themeDark?.addEventListener('click', ()=> applyTheme('dark'));
+  </script>
+</header>
