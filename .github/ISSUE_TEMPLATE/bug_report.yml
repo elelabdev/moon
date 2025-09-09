@@ -1,0 +1,14 @@
+name: "Bug report"
+description: Report a problem
+labels: ["type:bug","status:triage"]
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: What happened?
+      description: Steps to reproduce + expected vs actual + screenshots
+      placeholder: "1) Go to...\n2) Click...\n3) See error..."
+    validations: { required: true }
+  - type: input
+    id: env
+    attributes: { label: Environment, placeholder: "OS, Browser, Node, MOON version" }

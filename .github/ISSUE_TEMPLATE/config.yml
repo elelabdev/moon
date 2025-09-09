@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Q&A / Ideas
+    url: https://github.com/elelabdev/moon/discussions/categories/q-a
+    about: Ask questions or pitch ideas here.
